@@ -1,35 +1,14 @@
-# pip install matplotlib numpy
 import socket
-import time
-import traceback
-import sys
 import os
-from itertools import cycle
-import binascii
 import _thread as thread
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-IP = '192.168.0.10'
-PORT = 10940
-AUTORANGE = False
-
-def partition(n: int, lst):
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
-
-
-def deg2theta(deg):
-    return deg / 360 * 2 * np.pi
-
-def toCartesian(xTheta, xR):
-    X = np.cos(xTheta) * xR
-    Y = np.sin(xTheta) * xR
-    return X,Y
-
 class HokuyoReader():
     measureMsgHeads = {'ME', 'GE', 'MD', 'GD'}
+    
+    def deg2theta(deg):
+            return deg / 360 * 2 * np.pi
 
     def makeSocket(self, ip, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,6 +18,11 @@ class HokuyoReader():
 
     # decode 3 byte integer data line
     def decodeDistance(self, data):
+        
+        def partition(n: int, lst):
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
+
         # remove checksum bytes for every 65 bytes of data
         parts = [''.join(part[:-1]) for part in list(partition(65, data))]
         # repack data 
@@ -74,7 +58,7 @@ class HokuyoReader():
         self.expectedPacketSize = 65*50 + 44 # TODO hardcoded for full range measurement 
 
         ids = np.arange(1081-startStep)
-        self.xTheta = deg2theta((ids + startStep) * 270.0 / 1080 + 45 - 90) 
+        self.xTheta = self.deg2theta((ids + startStep) * 270.0 / 1080 + 45 - 90) 
 
         self.sock = self.makeSocket(ip, port)
         self.__startReader__()
@@ -84,7 +68,15 @@ class HokuyoReader():
         self.sock.sendall(cmd.encode())
 
 
-    def startPlotter(self):
+    def startPlotter(self, autorange=False):
+        
+        
+
+        def toCartesian(xTheta, xR):
+            X = np.cos(xTheta) * xR
+            Y = np.sin(xTheta) * xR
+            return X,Y
+
         plt.show()
         fig = plt.figure()
         axc = plt.subplot(121)
@@ -105,7 +97,7 @@ class HokuyoReader():
 
             axc.plot(X, Y)
 
-            if not AUTORANGE:
+            if not autorange:
                 axp.set_rmax(8000)
                 axc.set_xlim(-5000, 5000)
                 axc.set_ylim(-5000, 5000)
@@ -196,16 +188,3 @@ class HokuyoReader():
                 self.sock.close()
 
         thread.start_new_thread(loop, ())
-
-if __name__ == '__main__':
-    sensor = HokuyoReader(IP, PORT)
-    sensor.stop()
-    sensor.startContinuous(0, 1080)
-    time.sleep(2)
-    for i in range(10):
-        print(type(sensor.rDistance))
-        print(sensor.rDistance)
-        time.sleep(2)
-        sensor.stop()
-    # sensor.startContinuous(0, 1080)
-    # sensor.startPlotter()
