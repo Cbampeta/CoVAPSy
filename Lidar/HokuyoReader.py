@@ -1,20 +1,8 @@
-# pip install matplotlib numpy
 import socket
-import time
-import traceback
-import sys
 import os
-from itertools import cycle
-import binascii
 import _thread as thread
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-IP = '192.168.0.10'
-PORT = 10940
-AUTORANGE = False
-
 
 class HokuyoReader():
     measureMsgHeads = {'ME', 'GE', 'MD', 'GD'}
@@ -80,7 +68,7 @@ class HokuyoReader():
         self.sock.sendall(cmd.encode())
 
 
-    def startPlotter(self):
+    def startPlotter(self, autorange=False):
         
         
 
@@ -109,7 +97,7 @@ class HokuyoReader():
 
             axc.plot(X, Y)
 
-            if not AUTORANGE:
+            if not autorange:
                 axp.set_rmax(8000)
                 axc.set_xlim(-5000, 5000)
                 axc.set_ylim(-5000, 5000)
@@ -200,12 +188,3 @@ class HokuyoReader():
                 self.sock.close()
 
         thread.start_new_thread(loop, ())
-
-if __name__ == '__main__':
-    sensor = HokuyoReader(IP, PORT)
-    sensor.stop()
-    # sensor.singleRead(0, 1080)
-    time.sleep(2)
-
-    sensor.startContinuous(0, 1080)
-    sensor.startPlotter()
