@@ -12,13 +12,32 @@ class CNN1DExtractor(BaseFeaturesExtractor):
         # n_sensors = 1
         self.n_sensors = n_sensors
         cnn = nn.Sequential(
-            nn.Conv1d(1,  16, kernel_size=16, stride=8, padding=8, device=device),
+            # compression
+            nn.Conv1d(1,  64, kernel_size=7, stride=2, padding=3, device=device),
             nn.ReLU(),
-            nn.Conv1d(16, 32, kernel_size=8, stride=4, padding=4, device=device),
+            nn.MaxPool1d(2),
+            nn.Dropout1d(0.2),
+            # 128
+
+            nn.Conv1d(64, 64, kernel_size=3, padding="same", device=device),
             nn.ReLU(),
-            nn.Conv1d(32, 32, kernel_size=4, stride=2, padding=2, device=device),
+            nn.MaxPool1d(2),
+            nn.Dropout1d(0.3),
+            # 64
+
+            nn.Conv1d(64, 128, kernel_size=3, padding="same", device=device),
             nn.ReLU(),
+            nn.AvgPool1d(2),
+            nn.Dropout1d(0.4),
+            # 32
+
+            nn.Conv1d(128, 128, kernel_size=3, padding="same", device=device),
+            nn.ReLU(),
+            nn.AvgPool1d(2),
+            # 16
+
             nn.Flatten(-2, -1),
+            nn.Dropout(0.5),
         )
 
         # Compute shape by doing one forward pass
@@ -26,21 +45,11 @@ class CNN1DExtractor(BaseFeaturesExtractor):
             n_flatten = cnn(
                 torch.zeros([1, lidar_horizontal_resolution], dtype=torch.float32, device=device)
             ).shape[0]
-        super().__init__(space, n_flatten + n_sensors)
+        super().__init__(space, n_flatten)
 
         # we cannot assign this directly to self.cnn before calling the super constructor
         self.cnn = cnn
 
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        # print("ENTERING FORWARD")
-        # print(f"{observations.shape=}", flush=True)
-        # print("zzzzzzzzzzzzzzzzzzz")
-        # print(f"{observations[..., :self.n_sensors].shape=}")
-        x = self.cnn(observations[..., None, self.n_sensors:])
-        y = observations[..., :self.n_sensors]
-        # print(x.shape, y.shape)
-        x = torch.cat([y, x], dim=-1)
-        # print(x.shape)
-        # print("youpi")
-        return x
+        return self.cnn(observations[..., None, self.n_sensors:])
