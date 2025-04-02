@@ -12,11 +12,15 @@ def main():
     picam2 = Picamera2()
 
     # Configure the camera for preview
-    config = picam2.create_preview_configuration(main={"size": (640, 480)}, format= "BGR888")
-    picam2.configure(config)
+    picam2.resolution = (640, 480)  # Adjust for speed
+    picam2.framerate = 90  # Set high FPS (depends on resolution)
 
     # Start the camera
     picam2.start()
+    
+    with picamera.array.PiRGBArray(camera, size=(640, 480)) as stream:
+        for frame in camera.capture_continuous(stream, format="bgr", use_video_port=True):
+            image_matrix = frame.array
 
    
     Start_time = time.time()  # Start time for the image stream
