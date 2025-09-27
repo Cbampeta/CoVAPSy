@@ -5,6 +5,12 @@ from scipy.special import softmax
 import numpy as np
 from gpiozero import LED, Button
 import logging as log
+import smbus # type: ignore #ignore the module could not be resolved error because it is a linux only module
+import struct
+
+SLAVE_ADDRESS = 0x08
+# Create an SMBus instance
+bus = smbus.SMBus(1)  # 1 indicates /dev/i2c-1
 
 
 # Import constants from HL.Autotech_constant to share them between files and ease of use

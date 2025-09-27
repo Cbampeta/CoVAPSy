@@ -5,6 +5,7 @@ nav:
   - Lidar.md
   - Simulateur.md
   - IA.md
+  - Asservissement.md
   - How to create documentation: building_docs.md
   - Déroulement de la course: Deroulement_course.md
   - Regle de la course: https://ajuton-ens.github.io/CourseVoituresAutonomesSaclay/
