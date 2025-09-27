@@ -1,9 +1,10 @@
 site
 *ignored*
 *__pycache__*
-.vscode
+.vscode/
 *.zip
 Captured_Frames
 Debug
 Debug_Wayfinding
-
+.DS_Store
+.venv
